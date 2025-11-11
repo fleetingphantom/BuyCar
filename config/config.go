@@ -8,12 +8,8 @@ import (
 
 var (
 	Mysql        *mySQL
-	Redis        *redis
-	Oss          *oss
-	Smtp         *smtp
-	Verify       *verify
 	Server       *server
-	Turnstile    *turnstile
+	AiEndpoint   *aiEndpoint
 	runtimeViper = viper.New()
 )
 
@@ -47,10 +43,7 @@ func configMapping() {
 		logger.Fatalf("config.configMapping: 配置反序列化失败: %v", err)
 	}
 	Mysql = &c.MySQL
-	Redis = &c.Redis
-	Oss = &c.OSS
-	Smtp = &c.Smtp
-	Verify = &c.Verify
 	Server = &c.Server
-	Turnstile = &c.Turnstile
+	AiEndpoint = &c.AiEndpoint
+
 }
