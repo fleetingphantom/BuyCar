@@ -1,0 +1,67 @@
+name: Publish Go Binary
+
+# 触发条件：在 push 到 main 分支后
+on:
+  push:
+    branches:
+      - main
+env:
+  GITHUB_TOKEN: ${{ secrets.GOACTION }}      
+jobs:
+  buildAndDeploy:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # 交叉构建，多平台交叉编译
+    strategy:
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+          - goos: linux
+            goarch: amd64
+    # 使用checkout
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: "go.mod"
+        cache-dependency-path: "go.sum"
+    - run:
+       go version
+
+    - name: 安装 UPX
+      uses: crazy-max/ghaction-upx@v3
+      with:
+        install-only: true
+
+    - name: Build
+      run: |
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          go build -o BuyCar-${{ matrix.goos }}-${{ matrix.goarch }}.exe
+        else
+          go build -o BuyCar-${{ matrix.goos }}-${{ matrix.goarch }}
+        fi
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+
+    - name: 压缩二进制 (UPX)
+      run: |
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          upx --best BuyCar-${{ matrix.goos }}-${{ matrix.goarch }}.exe
+        else
+          upx --best BuyCar-${{ matrix.goos }}-${{ matrix.goarch }}
+        fi
+      shell: bash
+    
+        
+    - name: Save artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BuyCar-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: |
+          BuyCar-${{ matrix.goos }}-${{ matrix.goarch }}*
+          config/config.example.yaml
