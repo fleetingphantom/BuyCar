@@ -3,11 +3,14 @@
 package user
 
 import (
+	"buycar/biz/pack"
+	"buycar/biz/service"
+	"buycar/pkg/errno"
 	"context"
 
 	user "buycar/biz/model/user"
+
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
 // Login .
@@ -17,13 +20,13 @@ func Login(ctx context.Context, c *app.RequestContext) {
 	var req user.LoginReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		pack.BuildFailResponse(c, err)
 		return
 	}
 
 	resp := new(user.LoginResp)
 
-	c.JSON(consts.StatusOK, resp)
+	pack.SendResponse(c, resp)
 }
 
 // Register .
@@ -33,13 +36,20 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	var req user.RegisterReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		pack.BuildFailResponse(c, err)
 		return
 	}
 
 	resp := new(user.RegisterResp)
+	err = service.NewUserService(ctx, c).Register(&req)
+	if err != nil {
+		pack.BuildFailResponse(c, err)
+		return
+	}
 
-	c.JSON(consts.StatusOK, resp)
+	resp.BaseResponse = pack.BuildBaseResp(errno.Success)
+
+	pack.SendResponse(c, resp)
 }
 
 // Feedback .
@@ -49,11 +59,11 @@ func Feedback(ctx context.Context, c *app.RequestContext) {
 	var req user.FeedbackReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		pack.BuildFailResponse(c, err)
 		return
 	}
 
 	resp := new(user.FeedbackResp)
 
-	c.JSON(consts.StatusOK, resp)
+	pack.SendResponse(c, resp)
 }

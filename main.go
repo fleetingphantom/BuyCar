@@ -3,11 +3,27 @@
 package main
 
 import (
+	"buycar/biz/dal"
+	"buycar/biz/middleware"
+	"buycar/config"
+	"buycar/pkg/utils"
+	"log"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
+func Init() {
+	config.Init()
+	err := dal.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+	middleware.InitJWT()
+}
+
 func main() {
-	h := server.Default()
+	Init()
+	h := server.Default(server.WithHostPorts(utils.GetServerAddress()))
 
 	register(h)
 	h.Spin()
